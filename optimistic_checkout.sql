@@ -21,7 +21,7 @@ BEGIN
 
     -- Attempt update
     UPDATE book_copy
-    SET status = 'CheckedOut', version = version + 1
+    SET status = 'Checked Out', version = version + 1
     WHERE copy_id = p_copy_id AND version = v_version;
 
     -- Conflict detected
