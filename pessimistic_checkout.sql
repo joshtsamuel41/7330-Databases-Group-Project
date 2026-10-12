@@ -3,7 +3,6 @@ DELIMITER $$
 CREATE PROCEDURE checkout_pessimistic(
     IN p_copy_id INT,
     IN p_member_id INT,
-    IN p_staff_id INT,
     IN p_isolation VARCHAR(45)
 )
 BEGIN
@@ -11,13 +10,13 @@ BEGIN
     DECLARE v_tx_id INT;
     DECLARE v_deadlock INT DEFAULT 0;
 
-    -- Deadlock handler must be declared BEFORE any SQL statements
+    -- Deadlock handler
     DECLARE CONTINUE HANDLER FOR 1213
     BEGIN
         SET v_deadlock = 1;
     END;
 
-    -- Generate a transaction ID
+    -- Generate transaction ID
     SELECT IFNULL(MAX(tx_id),0) + 1 INTO v_tx_id FROM Transaction_log;
 
     -- Set isolation level
@@ -25,13 +24,13 @@ BEGIN
 
     START TRANSACTION;
 
-    -- Attempt to lock the row
+    -- Lock the row
     SELECT status INTO v_status
     FROM Book_copy
     WHERE copy_id = p_copy_id
     FOR UPDATE;
 
-    -- If deadlock occurred
+    -- Deadlock occurred
     IF v_deadlock = 1 THEN
         INSERT INTO Transaction_log
         VALUES (v_tx_id, 'checkout', NOW(), p_isolation, 'pessimistic',
@@ -40,7 +39,7 @@ BEGIN
         LEAVE proc_end;
     END IF;
 
-    -- Check availability
+    -- Not available
     IF v_status <> 'Available' THEN
         INSERT INTO Transaction_log
         VALUES (v_tx_id, 'checkout', NOW(), p_isolation, 'pessimistic',
@@ -55,8 +54,15 @@ BEGIN
     WHERE copy_id = p_copy_id;
 
     INSERT INTO Loan
-    VALUES (v_tx_id, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 14 DAY),
-            'Open', NULL, p_copy_id, p_member_id);
+    VALUES (
+        v_tx_id,
+        CURDATE(),
+        DATE_ADD(CURDATE(), INTERVAL 14 DAY),
+        'Open',
+        NULL,
+        p_copy_id,
+        p_member_id
+    );
 
     -- Log success
     INSERT INTO Transaction_log
