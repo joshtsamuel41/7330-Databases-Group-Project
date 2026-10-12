@@ -43,7 +43,7 @@ BEGIN
     ELSE
         -- Perform checkout
         UPDATE book_copy
-        SET status = 'CheckedOut'
+        SET status = 'Checked Out'
         WHERE copy_id = p_copy_id;
 
         INSERT INTO loan
