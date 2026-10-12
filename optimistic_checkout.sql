@@ -3,7 +3,6 @@ DELIMITER $$
 CREATE PROCEDURE checkout_optimistic(
     IN p_copy_id INT,
     IN p_member_id INT,
-    IN p_staff_id INT,
     IN p_isolation VARCHAR(45)
 )
 BEGIN
@@ -25,7 +24,7 @@ BEGIN
     SET status = 'CheckedOut', version = version + 1
     WHERE copy_id = p_copy_id AND version = v_version;
 
-    -- If no rows updated → conflict
+    -- Conflict detected
     IF ROW_COUNT() = 0 THEN
         INSERT INTO Conflict_log
         VALUES (v_tx_id, v_version, v_version + 1, NOW());
@@ -40,8 +39,15 @@ BEGIN
 
     -- Insert loan
     INSERT INTO Loan
-    VALUES (v_tx_id, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 14 DAY),
-            'Open', NULL, p_copy_id, p_member_id);
+    VALUES (
+        v_tx_id,
+        CURDATE(),
+        DATE_ADD(CURDATE(), INTERVAL 14 DAY),
+        'Open',
+        NULL,
+        p_copy_id,
+        p_member_id
+    );
 
     -- Log success
     INSERT INTO Transaction_log
