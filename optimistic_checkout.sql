@@ -41,7 +41,7 @@ BEGIN
             v_tx_id,
             CURDATE(),
             DATE_ADD(CURDATE(), INTERVAL 14 DAY),
-            'Open',
+            'Checked Out',
             NULL,
             p_copy_id,
             p_member_id
