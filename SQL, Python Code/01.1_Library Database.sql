@@ -92,7 +92,7 @@ ENGINE = InnoDB;
 -- Table `library`.`Transaction_log`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `library`.`Transaction_log` (
-  `tx_id` INT NOT NULL,
+  `tx_id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `operation_type` VARCHAR(45) NULL,
   `timestamp` DATETIME NULL,
   `isolation_level` VARCHAR(45) NULL,
